@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	compile 'log4j:log4j:1.2.17'
+	testCompile 'junit:junit:4.11'
+}
+
+test {
+	testLogging {
+		events 'started', 'passed'
+	}
+}
