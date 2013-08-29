@@ -56,6 +56,117 @@ public class JSONLayoutTest extends LayoutTest {
         String result = layout.format(event);
         JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
         checkEventObject(parsedResult, event);
+
+        assertEquals(5, parsedResult.keySet().size());
+        assertNull(parsedResult.get("throwable"));
+    }
+
+    public void testFormatWithException() throws Exception {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+        Exception ex = new IllegalArgumentException("required argument");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", ex);
+        JSONLayout layout = new JSONLayout();
+        String result = layout.format(event);
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        assertNotNull(parsedResult.get("throwable"));
+        assertTrue(parsedResult.get("throwable").toString().indexOf("required argument") >= 0);
+    }
+
+    public void testFormatWithNDC() throws Exception {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+
+        NDC.push("NDC goes here");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", null);
+        JSONLayout layout = new JSONLayout();
+        String result = layout.format(event);
+        NDC.pop();
+
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        assertNotNull(parsedResult.get("NDC"));
+        assertEquals("NDC goes here", parsedResult.get("NDC"));
+    }
+
+    public void testFormatWithMDC() throws Exception {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+
+        MDC.put("mdc", "MDC goes here");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", null);
+        JSONLayout layout = new JSONLayout();
+        layout.setProperties(true);
+        String result = layout.format(event);
+        MDC.clear();
+
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        assertNotNull(parsedResult.get("properties"));
+        assertEquals("MDC goes here", ((JSONObject) parsedResult.get("properties")).get("mdc"));
+    }
+
+    public void testFormatWithoutMDC() throws Exception {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+
+        MDC.put("mdc", "MDC goes here");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", null);
+        JSONLayout layout = new JSONLayout();
+        layout.setProperties(false);
+        String result = layout.format(event);
+        MDC.clear();
+
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        assertNull(parsedResult.get("properties"));
+    }
+
+    public void testFormatWithLocationInfo() {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", null);
+        JSONLayout layout = new JSONLayout();
+        layout.setLocationInfo(true);
+        String result = layout.format(event);
+
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        JSONObject location = (JSONObject) parsedResult.get("location");
+        assertNotNull(location);
+    }
+
+    public void testFormatWithoutLocationInfo() {
+        Logger logger = Logger.getLogger("org.apache.log4j.json.JSONLayoutTest");
+        LoggingEvent event = new LoggingEvent("org.apache.log4j.Logger", logger, Level.INFO, "Hello, world", null);
+        JSONLayout layout = new JSONLayout();
+        layout.setLocationInfo(false);
+        String result = layout.format(event);
+
+        JSONObject parsedResult = (JSONObject) JSONValue.parse(result);
+        checkEventObject(parsedResult, event);
+
+        JSONObject location = (JSONObject) parsedResult.get("location");
+        assertNull(location);
+    }
+
+    public void testGetSetLocationInfo() {
+        JSONLayout layout = new JSONLayout();
+        assertFalse(layout.getLocationInfo());
+        layout.setLocationInfo(true);
+        assertTrue(layout.getLocationInfo());
+        layout.setLocationInfo(false);
+        assertFalse(layout.getLocationInfo());
+    }
+
+    public void testGetSetProperties() {
+        JSONLayout layout = new JSONLayout();
+        assertFalse(layout.getProperties());
+        layout.setProperties(true);
+        assertTrue(layout.getProperties());
+        layout.setProperties(false);
+        assertFalse(layout.getProperties());
     }
 
 }
