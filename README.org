@@ -1,1 +1,4 @@
 * log4j-extra
+
+#+CAPTION: travis status
+[[https://travis-ci.org/goncha/log4j-extra.png?branch=master]]
