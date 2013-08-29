@@ -38,6 +38,7 @@ public class JSONLayout extends Layout {
     boolean locationInfo = false;
     boolean properties = false;
 
+
     /**
      * The <b>LocationInfo</b> option takes a boolean value. By default,
      * it is set to false which means there will be no location
